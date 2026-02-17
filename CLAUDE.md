@@ -164,3 +164,32 @@ print(result['source_documents'])  # Source chunks
 - Logs are written to `logs/query_YYYYMMDD.log` and `logs/rag_script_YYYYMMDD.log`
 - Retry logic handles rate limits and temporary errors with exponential backoff
 - Embeddings use OpenAI ada-002 by default (works with most providers)
+
+## Runtime Tips
+
+- Run `ollama serve` in a separate terminal before querying
+- Set `LANGCHAIN_TRACING_V2=false` to avoid 403 errors
+- Use `RETRIEVAL_K=1` for faster queries
+
+## Recommended Ollama Models
+
+| Model | Size | Use Case |
+|-------|------|----------|
+| `qwen2.5-coder:3b` | ~1.9GB | Recommended for speed |
+| `phi3` | ~2.3GB | Very fast |
+| `llama3:8b` | ~4.9GB | Better quality |
+
+## Runtime Tips
+
+- Run `ollama serve` in a separate terminal before querying
+- Set `LANGCHAIN_TRACING_V2=false` in `.env` to avoid 403 errors
+- Use `RETRIEVAL_K=1` in `.env` for faster queries
+
+## Performance Recommendations
+
+| Model | Size | Best For |
+|-------|------|----------|
+| `qwen2.5-coder:3b` | ~1.9GB | Recommended - fast & lightweight |
+| `phi3` | ~2.3GB | Very fast |
+| `llama3:8b` | ~4.9GB | Better quality |
+| `qwen2.5-coder:7b` | ~4.7GB | Best quality (slower) |
