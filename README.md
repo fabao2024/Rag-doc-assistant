@@ -1,10 +1,9 @@
 # 📚 Smart Document Q&A with RAG
 
-> A production-ready Retrieval-Augmented Generation (RAG) system that enables intelligent question-answering over your PDF documents using OpenAI, LangChain, and ChromaDB.
+> A production-ready Retrieval-Augmented Generation (RAG) system that enables intelligent question-answering over your PDF documents using multiple LLM providers (OpenAI, Ollama, Anthropic, Google, ZhipuAI, Azure) and ChromaDB.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![LangChain](https://img.shields.io/badge/LangChain-1.0+-green.svg)](https://github.com/langchain-ai/langchain)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--3.5-orange.svg)](https://openai.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-Rag--doc--assistant-blue?logo=github)](https://github.com/fabao2024/Rag-doc-assistant)
 
@@ -22,11 +21,15 @@ This project implements a modern RAG (Retrieval-Augmented Generation) pipeline t
 
 ## ✨ Features
 
+- **Multi-Provider LLM Support**: Use OpenAI, Ollama (local), Anthropic, Google Gemini, ZhipuAI, or Azure OpenAI
+- **Local Inference**: Run with Ollama for zero API costs
 - **Modern Architecture**: Built with LangChain 1.0+ using LCEL patterns
 - **Persistent Vector Store**: ChromaDB for efficient document retrieval
 - **Smart Chunking**: Recursive text splitting with configurable overlap
 - **Source Tracking**: Always know which document sections informed the answer
 - **Clean CLI Interface**: Simple command-line tool for querying documents
+- **Comprehensive Logging**: File-based logging with configurable levels
+- **Retry Logic**: Exponential backoff for API rate limits
 - **Production Ready**: Proper error handling, logging, and configuration management
 
 ## 🏗️ Architecture
@@ -35,30 +38,29 @@ This project implements a modern RAG (Retrieval-Augmented Generation) pipeline t
 graph LR
     A[PDF Documents] --> B[Document Loader]
     B --> C[Text Splitter]
-    C --> D[OpenAI Embeddings]
+    C --> D[Embeddings]
     D --> E[ChromaDB Vector Store]
     F[User Question] --> G[Retriever]
     E --> G
     G --> H[Context]
-    H --> I[LLM GPT-3.5]
+    H --> I[LLM Provider]
     F --> I
     I --> J[Answer + Sources]
 ```
 
 **Pipeline Flow:**
 1. **Document Ingestion**: PDFs are loaded and split into manageable chunks
-2. **Embedding Generation**: Each chunk is converted to vector embeddings via OpenAI
+2. **Embedding Generation**: Each chunk is converted to vector embeddings
 3. **Vector Storage**: Embeddings stored in ChromaDB for fast retrieval
 4. **Query Processing**: User questions are embedded and matched against stored vectors
-5. **Answer Generation**: Retrieved context + question sent to GPT-3.5 for answer synthesis
+5. **Answer Generation**: Retrieved context + question sent to LLM for answer synthesis
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8 or higher
-- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
-- (Optional) LangSmith API key for tracing ([Sign up](https://smith.langchain.com/))
+- (Optional) LLM provider API key - or use Ollama for local inference
 
 ### Installation
 
@@ -71,10 +73,10 @@ graph LR
 2. **Create virtual environment**
    ```bash
    python -m venv .venv
-   
+
    # Windows
    .venv\Scripts\activate
-   
+
    # macOS/Linux
    source .venv/bin/activate
    ```
@@ -87,16 +89,15 @@ graph LR
 4. **Configure environment variables**
    ```bash
    # Copy the example file
-   cp .env.example .env
-   
-   # Edit .env and add your API keys
-   # OPENAI_API_KEY=your_key_here
+   copy .env.example .env
+
+   # Edit .env and configure your LLM provider
    ```
 
 5. **Add your documents**
    ```bash
    # Place PDF files in the documents folder
-   cp your_document.pdf documents/
+   copy your_document.pdf documents/
    ```
 
 6. **Build the vector store**
@@ -105,6 +106,53 @@ graph LR
    ```
 
 ## 💻 Usage
+
+### Choose Your LLM Provider
+
+#### Option 1: Ollama (Local - Free!)
+```bash
+# Install Ollama: https://ollama.ai
+# Run: ollama serve
+
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=qwen2.5-coder:7b
+```
+
+#### Option 2: OpenAI
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-3.5-turbo
+```
+
+#### Option 3: Anthropic (Claude)
+```bash
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-3-haiku-20240307
+```
+
+#### Option 4: Google (Gemini)
+```bash
+LLM_PROVIDER=google
+GOOGLE_API_KEY=AIza...
+GOOGLE_MODEL=gemini-pro
+```
+
+#### Option 5: ZhipuAI (GLM)
+```bash
+LLM_PROVIDER=zhipuai
+ZHIPUAI_API_KEY=your_key
+ZHIPUAI_MODEL=glm-4
+```
+
+#### Option 6: Azure OpenAI
+```bash
+LLM_PROVIDER=azure
+AZURE_OPENAI_API_KEY=your_key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=gpt-35-turbo
+```
 
 ### Command Line Interface
 
@@ -146,17 +194,21 @@ Content preview: The vehicle features a comprehensive safety suite including...
 Use the RAG system programmatically:
 
 ```python
-from query import ask_question
+from query import ask_question, load_vector_store, create_rag_chain
+
+# Load vector store and create chain
+vectorstore = load_vector_store()
+rag_chain, retriever = create_rag_chain(vectorstore)
 
 # Ask a question
-result = ask_question("How do I charge the vehicle?")
+result = ask_question(rag_chain, retriever, "How do I charge the vehicle?")
 
 # Access the answer
 print(result['result'])
 
 # Access source documents
 for doc in result['source_documents']:
-    print(f"Page {doc.metadata['page']}: {doc.page_content[:100]}...")
+    print(f"Page {doc.metadata.get('page', 'N/A')}: {doc.page_content[:100]}...")
 ```
 
 ### Interactive Mode
@@ -175,13 +227,15 @@ Enter your question: What is the warranty period?
 rag-document-qa/
 ├── documents/              # 📄 Place your PDF files here
 ├── chroma_db/             # 🗄️ Vector database (auto-generated)
+├── logs/                  # 📝 Log files (auto-generated)
 ├── .venv/                 # 🐍 Virtual environment
 ├── rag_script.py          # 🔧 Main RAG pipeline setup
 ├── query.py               # 💬 CLI query interface
-├── test_imports.py        # ✅ Verify dependencies
+├── llm_config.py         # 🔌 Multi-provider LLM configuration
+├── CLAUDE.md              # 📖 Claude AI assistant documentation
 ├── requirements.txt       # 📦 Python dependencies
-├── .env.example           # 🔑 Environment template
-├── .env                   # 🔐 Your API keys (gitignored)
+├── .env.example          # 🔑 Environment template
+├── .env                  # 🔐 Your API keys (gitignored)
 ├── .gitignore            # 🚫 Git exclusions
 ├── LICENSE               # ⚖️ MIT License
 └── README.md             # 📖 This file
@@ -191,22 +245,36 @@ rag-document-qa/
 
 ### Environment Variables
 
-Create a `.env` file with the following:
+Create a `.env` file with your provider configuration:
 
 ```bash
-# Required
+# Required - Choose your provider
+LLM_PROVIDER=ollama  # openai, anthropic, google, zhipuai, azure, ollama
+
+# OpenAI (example)
 OPENAI_API_KEY=sk-...
 
-# Optional - for LangSmith tracing
-LANGCHAIN_TRACING_V2=true
-LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
-LANGCHAIN_API_KEY=lsv2_pt_...
-LANGCHAIN_PROJECT=rag_project
+# Ollama (example)
+OLLAMA_MODEL=qwen2.5-coder:7b
+
+# Optional - Retrieval configuration
+RETRIEVAL_K=3
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+
+# Optional - Logging configuration
+LOG_DIR=./logs
+LOG_LEVEL=INFO
+
+# Optional - Retry configuration
+MAX_RETRIES=3
+RETRY_DELAY=1.0
+RETRY_BACKOFF=2.0
 ```
 
 ### Customization
 
-**Adjust chunk size** (in `rag_script.py`):
+**Adjust chunk size**:
 ```python
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,      # Increase for longer context
@@ -214,15 +282,7 @@ splitter = RecursiveCharacterTextSplitter(
 )
 ```
 
-**Change LLM model** (in `rag_script.py` or `query.py`):
-```python
-llm = ChatOpenAI(
-    model="gpt-4",        # Use GPT-4 for better quality
-    temperature=0         # 0 = deterministic, 1 = creative
-)
-```
-
-**Modify retrieval count** (in `query.py`):
+**Modify retrieval count**:
 ```python
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})  # Retrieve top 5 chunks
 ```
@@ -237,7 +297,6 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": 5})  # Retrieve top 5 c
 - **langchain-text-splitters**: Text chunking utilities
 - **chromadb**: Vector database
 - **pypdf**: PDF parsing
-- **openai**: OpenAI API client
 - **python-dotenv**: Environment management
 
 ### Modern LangChain Patterns
@@ -264,18 +323,7 @@ rag_chain = (
 
 ### Common Issues
 
-**1. ModuleNotFoundError: No module named 'langchain.text_splitter'**
-
-**Solution:** Update imports to use the new package structure:
-```python
-# Old (deprecated)
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-# New (correct)
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-```
-
-**2. LangSmith "Forbidden" errors**
+**1. LangSmith "Forbidden" errors**
 
 These are harmless telemetry errors. To disable:
 ```bash
@@ -283,25 +331,31 @@ These are harmless telemetry errors. To disable:
 LANGCHAIN_TRACING_V2=false
 ```
 
-**3. Empty documents folder error**
+**2. Empty documents folder error**
 
 Make sure to add PDF files to the `documents/` folder before running `rag_script.py`.
 
-**4. OpenAI API rate limits**
+**3. Ollama model not found**
 
-If you hit rate limits, consider:
-- Using a paid OpenAI account
+Make sure the model is pulled:
+```bash
+ollama pull qwen2.5-coder:7b
+```
+
+**4. API rate limits**
+
+The system includes automatic retry logic with exponential backoff. If issues persist:
+- Using a paid API account
 - Reducing chunk count in retrieval
-- Adding retry logic with exponential backoff
+- Using Ollama for local inference (free!)
 
 ## 📊 Performance
 
 **Tested with:**
 - Document: 257-page vehicle manual (4MB PDF)
-- Chunks generated: 257
-- Average query time: ~2-3 seconds
+- Chunks generated: 555
+- Average query time: ~2-5 seconds (varies by provider)
 - Embedding model: text-embedding-ada-002
-- LLM: gpt-3.5-turbo
 
 ## 🤝 Contributing
 
@@ -320,8 +374,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [LangChain](https://github.com/langchain-ai/langchain) for the amazing framework
-- [OpenAI](https://openai.com/) for GPT and embedding models
 - [ChromaDB](https://www.trychroma.com/) for the vector database
+- [Ollama](https://ollama.ai/) for local LLM inference
+- All LLM providers (OpenAI, Anthropic, Google, ZhipuAI)
 
 ## 📧 Contact
 
