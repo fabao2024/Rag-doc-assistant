@@ -94,7 +94,7 @@ def get_llm(provider: Optional[str] = None, **kwargs) -> Any:
             )
 
         elif provider == PROVIDER_OLLAMA:
-            from langchain_community.chat_models import ChatOllama
+            from langchain_ollama import ChatOllama
             return ChatOllama(
                 model=os.getenv("OLLAMA_MODEL", "llama2"),
                 base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),

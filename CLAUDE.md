@@ -8,7 +8,8 @@ A Retrieval-Augmented Generation (RAG) system that enables intelligent question-
 
 - **Python 3.8+**
 - **LangChain 1.0+** - LLM framework with LCEL patterns
-- **ChromaDB** - Vector database for document retrieval
+- **LangChain Chroma** - Vector database for document retrieval (new package: langchain-chroma)
+- **LangChain Ollama** - Ollama integration (new package: langchain-ollama)
 - **pypdf** - PDF parsing
 - **tenacity** - Retry logic
 
@@ -98,16 +99,25 @@ AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 AZURE_OPENAI_DEPLOYMENT=gpt-35-turbo
 ```
 
-### Ollama (Local)
+### Ollama (Local - Recommended for zero API costs)
 ```bash
 LLM_PROVIDER=ollama
-OLLAMA_MODEL=llama2
+OLLAMA_MODEL=qwen2.5-coder:3b  # Recommended: fast & lightweight (~1.9GB)
+# Other options: llama2, mistral, phi3, qwen2.5-coder:7b
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
+### Recommended Ollama Models
+| Model | Size | Speed |
+|-------|------|-------|
+| `qwen2.5-coder:3b` | ~1.9GB | Very fast |
+| `phi3` | ~2.3GB | Very fast |
+| `mistral` | ~4GB | Fast |
+| `qwen2.5-coder:7b` | ~4.7GB | Medium |
+
 ### Retrieval Configuration
 ```bash
-RETRIEVAL_K=3
+RETRIEVAL_K=1  # Number of chunks to retrieve (1-3 recommended for speed)
 CHUNK_SIZE=1000
 CHUNK_OVERLAP=200
 ```
