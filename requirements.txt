@@ -14,8 +14,24 @@ pypdf==6.3.0
 # OpenAI
 openai==2.8.1
 
+# Retry Logic
+tenacity==9.0.0
+
 # Environment Management
 python-dotenv==1.2.1
 
 # Optional: LangSmith Tracing
 langsmith==0.4.45
+
+# Additional LLM Providers (install only what you need)
+# Anthropic (Claude)
+# langchain-anthropic
+
+# Google (Gemini)
+# langchain-google-genai
+
+# ZhipuAI (GLM)
+# langchain-community
+
+# Ollama (Local)
+# langchain-community
